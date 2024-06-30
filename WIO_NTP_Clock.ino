@@ -16,8 +16,8 @@
 #include <TimeLib.h>       // Time library for handling dates and times
 
 // Wi-Fi network credentials
-const char* ssid     = "AP1-5G_1";
-const char* password = "!g6jr7HD1H!";
+const char* ssid     = "AP_Name";
+const char* password = "Passphrase";
 
 // Timezone offset in seconds (e.g., for CDT: -5 * 3600 seconds)
 long timezoneOffset = -5 * 3600;
