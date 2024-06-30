@@ -93,7 +93,9 @@ void updateDisplay() {
   for (int x = 0; x < GRID_WIDTH; x++) {
     for (int y = 0; y < GRID_HEIGHT; y++) {
       currentGrid[x][y] = nextGrid[x][y]; // Update current grid state
-      tft.fillRect(x * CELL_SIZE, (y * CELL_SIZE) + TEXT_HEIGHT, CELL_SIZE, CELL_SIZE, currentGrid[x][y] ? TFT_WHITE : TFT_BLACK);
+      int aliveNeighbors = countAliveNeighbors(x, y);
+      uint16_t color = getColorBasedOnNeighbors(currentGrid[x][y], aliveNeighbors);
+      tft.fillRect(x * CELL_SIZE, (y * CELL_SIZE) + TEXT_HEIGHT, CELL_SIZE, CELL_SIZE, color);
     }
   }
 }
@@ -109,4 +111,24 @@ int countAliveNeighbors(int x, int y) {
     }
   }
   return count;
+}
+
+uint16_t getColorBasedOnNeighbors(bool cellState, int aliveNeighbors) {
+  if (!cellState) {
+    return TFT_BLACK; // Dead cells are black
+  }
+
+  // Alive cells' colors based on the number of alive neighbors
+  switch (aliveNeighbors) {
+    case 0: return TFT_BLUE;
+    case 1: return TFT_CYAN;
+    case 2: return TFT_GREEN;
+    case 3: return TFT_YELLOW;
+    case 4: return TFT_ORANGE;
+    case 5: return TFT_RED;
+    case 6: return TFT_MAGENTA;
+    case 7: return TFT_PURPLE;
+    case 8: return TFT_WHITE;
+    default: return TFT_WHITE; // This should never happen
+  }
 }
