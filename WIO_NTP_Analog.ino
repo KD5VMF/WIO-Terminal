@@ -161,7 +161,7 @@ void drawAnalogClock(int hours, int minutes, int seconds) {
   tft.drawLine(centerX, centerY, prevMinX, prevMinY, TFT_WHITE);
 
   // Draw second hand
-  prevSecX = centerX + radius * 0.85 * cos((secondAngle - 90) * PI / 180);
-  prevSecY = centerY + radius * 0.85 * sin((secondAngle - 90) * PI / 180);
+  prevSecX = centerX + radius * 0.75 * cos((secondAngle - 90) * PI / 180); // Same length as minute hand
+  prevSecY = centerY + radius * 0.75 * sin((secondAngle - 90) * PI / 180); // Same length as minute hand
   tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_RED);
 }
