@@ -5,8 +5,8 @@
 #include <WiFiUdp.h>
 
 // WiFi credentials
-const char* ssid     = "AP1";
-const char* password = "sonysony78";
+const char* ssid     = "SSID";
+const char* password = "PASSPHRASE";
 
 // Timezone setting for Chicago
 const long gmtOffset_sec = -21600; // GMT offset for Chicago (UTC - 6 hours)
