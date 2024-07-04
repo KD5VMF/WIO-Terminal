@@ -1,4 +1,4 @@
-Seeed Studio WIO Terminal Programs
+*** Seeed Studio WIO Terminal Programs
 This repository contains multiple programs written for the Seeed Studio WIO Terminal. These programs were developed with the assistance of ChatGPT-4 and Adam Figueroa.
 
 Programs Included:
