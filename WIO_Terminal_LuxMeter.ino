@@ -1,17 +1,6 @@
-/*
-  Title: WIO-Terminal Lux Meter Display with Calibration
-  Author: [Your Name]
-  Date: [Today's Date]
-
-  About:
-  This program measures the ambient light level using the built-in light sensor 
-  of the WIO Terminal and displays the lux value on the WIO-Terminal's LCD screen. 
-  The display uses the same font and color settings as a previous clock program 
-  for consistency. The user can calibrate the lux reading by pressing the top 
-  left button (SW1).
-
-  License: MIT License
-  Copyright (c) [Year] [Your Name]
+/*  
+License: MIT License
+  Copyright (c) [2024] [Adam Figueroa]
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
