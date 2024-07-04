@@ -5,8 +5,8 @@
 #include <WiFiUdp.h>
 
 // WiFi credentials
-const char* ssid     = "SSID";
-const char* password = "PASSPHRASE";
+const char* ssid     = "your_SSID";
+const char* password = "your_PASSWORD";
 
 // Timezone setting for Chicago
 const long gmtOffset_sec = -21600; // GMT offset for Chicago (UTC - 6 hours)
@@ -104,6 +104,7 @@ void drawClockFace() {
   tft.drawCircle(centerX, centerY, radius, TFT_WHITE);
 
   // Draw hour markers and numbers
+  tft.setTextSize(2); // Set larger text size
   for (int i = 1; i <= 12; i++) {
     float angle = (i - 3) * 30 * PI / 180; // Adjusted angle calculation
     int x1 = centerX + (radius - 10) * cos(angle);
@@ -113,16 +114,17 @@ void drawClockFace() {
     tft.drawLine(x1, y1, x2, y2, TFT_WHITE);
 
     // Draw hour numbers
-    int xNum = centerX + (radius - 20) * cos(angle);
+    int xNum = centerX + (radius - 20) * cos(angle); // Adjust position to accommodate larger text
     int yNum = centerY + (radius - 20) * sin(angle);
     String hourStr = String(i);
-    int16_t x1Num = xNum - 6; // Approximate centering
-    int16_t y1Num = yNum - 7; // Approximate centering
+    int16_t x1Num = xNum - (6 * hourStr.length()); // Approximate centering for larger text
+    int16_t y1Num = yNum - 12; // Approximate centering for larger text
     tft.setCursor(x1Num, y1Num);
     tft.print(hourStr);
   }
 
   // Draw minute markers
+  tft.setTextSize(1); // Reset text size for minute markers
   for (int i = 0; i < 60; i++) {
     if (i % 5 != 0) { // Skip where hour markers are
       float angle = (i - 15) * 6 * PI / 180; // Adjusted angle calculation
