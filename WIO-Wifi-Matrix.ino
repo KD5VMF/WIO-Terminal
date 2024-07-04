@@ -1,15 +1,5 @@
-/*
-  Title: Matrix Multiplication and Display
-  Author: [Chat-GPT4o /w Adam Figueroa]
-  Date: [06/30/2024]
-
-  About:
-  This program performs matrix multiplication of two randomly generated 8x8 matrices
-  and displays the matrices on a TFT screen. The random number generator is seeded using
-  the RSSI values of scanned Wi-Fi networks to ensure randomness. The matrices and the
-  result are displayed on WIO-Terminal and/or a TFT screen using the TFT_eSPI library.
-
-  License: MIT License
+/*  
+License: MIT License
   Copyright (c) [2024] [Adam Figueroa]
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
