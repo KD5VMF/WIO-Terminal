@@ -85,27 +85,27 @@ void loop() {
   
   if (currentMillis - lastNtpUpdateTime >= ntpUpdateInterval || lastNtpUpdateTime == 0) {
     if (WiFi.status() == WL_CONNECTED) {
-      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while getting time
+      tft.fillCircle(tft.width() - 20, 20, 10, TFT_YELLOW); // Yellow dot while getting time
       if (timeClient.update()) {
         ntpSuccess = true;
         lastNtpUpdateTime = currentMillis;
-        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
+        tft.fillCircle(tft.width() - 20, 20, 10, TFT_GREEN); // Green dot for successful update
       } else {
         ntpSuccess = false;
-        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+        tft.fillCircle(tft.width() - 20, 20, 10, TFT_RED); // Red dot for failed update
       }
     } else {
       ntpSuccess = false;
-      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+      tft.fillCircle(tft.width() - 20, 20, 10, TFT_RED); // Red dot for failed update
     }
   } else if (!ntpSuccess && currentMillis - lastRetryTime >= retryInterval) {
     lastRetryTime = currentMillis;
     if (WiFi.status() == WL_CONNECTED) {
-      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while retrying
+      tft.fillCircle(tft.width() - 20, 20, 10, TFT_YELLOW); // Yellow dot while retrying
       if (timeClient.update()) {
         ntpSuccess = true;
         lastNtpUpdateTime = currentMillis;
-        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
+        tft.fillCircle(tft.width() - 20, 20, 10, TFT_GREEN); // Green dot for successful update
       }
     }
   }
