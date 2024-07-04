@@ -24,6 +24,12 @@ int prevSecX = 0, prevSecY = 0;
 int prevMinX = 0, prevMinY = 0;
 int prevHourX = 0, prevHourY = 0;
 
+unsigned long lastNtpUpdateTime = 0;
+unsigned long lastRetryTime = 0;
+const unsigned long ntpUpdateInterval = 5 * 60 * 1000; // 5 minutes
+const unsigned long retryInterval = 30 * 1000; // 30 seconds
+bool ntpSuccess = false;
+
 void setup() {
   // Initialize the TFT screen
   tft.begin();
@@ -52,7 +58,34 @@ void setup() {
 }
 
 void loop() {
-  timeClient.update();
+  unsigned long currentMillis = millis();
+  
+  if (currentMillis - lastNtpUpdateTime >= ntpUpdateInterval || lastNtpUpdateTime == 0) {
+    if (WiFi.status() == WL_CONNECTED) {
+      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while getting time
+      if (timeClient.update()) {
+        ntpSuccess = true;
+        lastNtpUpdateTime = currentMillis;
+        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
+      } else {
+        ntpSuccess = false;
+        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+      }
+    } else {
+      ntpSuccess = false;
+      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+    }
+  } else if (!ntpSuccess && currentMillis - lastRetryTime >= retryInterval) {
+    lastRetryTime = currentMillis;
+    if (WiFi.status() == WL_CONNECTED) {
+      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while retrying
+      if (timeClient.update()) {
+        ntpSuccess = true;
+        lastNtpUpdateTime = currentMillis;
+        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
+      }
+    }
+  }
 
   // Extract the time components
   int hours = timeClient.getHours();
