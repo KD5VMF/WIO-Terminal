@@ -43,9 +43,9 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", gmtOffset_sec + daylightOffset_sec, 60000); // NTP server, time offset in seconds, update interval in milliseconds
 
 int centerX, centerY, radius;
-int prevSecX = 0, prevSecY = 0;
-int prevMinX = 0, prevMinY = 0;
-int prevHourX = 0, prevHourY = 0;
+float prevSecX = 0, prevSecY = 0;
+float prevMinX = 0, prevMinY = 0;
+float prevHourX = 0, prevHourY = 0;
 
 unsigned long lastNtpUpdateTime = 0;
 unsigned long lastRetryTime = 0;
@@ -162,11 +162,9 @@ void drawClockFace() {
 
 void drawAnalogClock(int hours, int minutes, int seconds) {
   // Erase the previous hands by drawing them in black
-  if (prevSecX != 0 || prevSecY != 0) {
-    tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_BLACK);
-    tft.drawLine(centerX, centerY, prevMinX, prevMinY, TFT_BLACK);
-    tft.drawLine(centerX, centerY, prevHourX, prevHourY, TFT_BLACK);
-  }
+  tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_BLACK);
+  tft.drawLine(centerX, centerY, prevMinX, prevMinY, TFT_BLACK);
+  tft.drawLine(centerX, centerY, prevHourX, prevHourY, TFT_BLACK);
 
   // Calculate angles
   float hourAngle = ((hours % 12) + minutes / 60.0) * 30;
