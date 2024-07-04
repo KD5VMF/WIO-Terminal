@@ -43,5 +43,3 @@ Display customization options.
 
 # Credits
 Developed by ChatGPT-4 with the help of Adam Figueroa.
-
-You can create a file named README.md in the root directory of your repository and paste the above content into it. This will provide an overview of the repository and acknowledge the contributions.
