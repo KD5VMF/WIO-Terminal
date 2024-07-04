@@ -41,7 +41,7 @@ A WiFi-enabled matrix display on the Wio Terminal. It connects to a WiFi network
 Real-time data updates.
 Display customization options.
 
-Credits
+# Credits
 Developed by ChatGPT-4 with the help of Adam Figueroa.
 
 You can create a file named README.md in the root directory of your repository and paste the above content into it. This will provide an overview of the repository and acknowledge the contributions.
