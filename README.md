@@ -37,9 +37,8 @@ Real-time light intensity measurement.
 Graphical representation of light levels.
 
 # WiFi Matrix Display (WIO-Wifi-Matrix.ino)
-A WiFi-enabled matrix display on the Wio Terminal. It connects to a WiFi network and displays various information.
-Real-time data updates.
-Display customization options.
+This project demonstrates matrix multiplication using an 8x8 matrix and displays the results on a TFT screen. 
+The randomness for generating the matrices is derived from the RSSI values of scanned Wi-Fi networks.
 
 # Credits
 Developed by ChatGPT-4 with the help of Adam Figueroa.
