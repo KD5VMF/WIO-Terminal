@@ -30,8 +30,6 @@ const unsigned long ntpUpdateInterval = 5 * 60 * 1000; // 5 minutes
 const unsigned long retryInterval = 30 * 1000; // 30 seconds
 bool ntpSuccess = false;
 
-const int buttonPin = WIO_KEY_C; // Top right button pin
-
 void setup() {
   // Initialize the TFT screen
   tft.begin();
@@ -42,9 +40,6 @@ void setup() {
   centerX = tft.width() / 2;
   centerY = tft.height() / 2;
   radius = min(centerX, centerY) - 10;
-
-  // Initialize button pin
-  pinMode(buttonPin, INPUT_PULLUP);
 
   // Connect to Wi-Fi
   Serial.begin(115200);
@@ -64,15 +59,22 @@ void setup() {
 
 void loop() {
   unsigned long currentMillis = millis();
-
-  // Check if the button is pressed
-  if (digitalRead(buttonPin) == LOW) {
-    updateNtpTime();
-    delay(500); // Debounce delay
-  }
   
   if (currentMillis - lastNtpUpdateTime >= ntpUpdateInterval || lastNtpUpdateTime == 0) {
-    updateNtpTime();
+    if (WiFi.status() == WL_CONNECTED) {
+      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while getting time
+      if (timeClient.update()) {
+        ntpSuccess = true;
+        lastNtpUpdateTime = currentMillis;
+        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
+      } else {
+        ntpSuccess = false;
+        tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+      }
+    } else {
+      ntpSuccess = false;
+      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
+    }
   } else if (!ntpSuccess && currentMillis - lastRetryTime >= retryInterval) {
     lastRetryTime = currentMillis;
     if (WiFi.status() == WL_CONNECTED) {
@@ -95,23 +97,6 @@ void loop() {
 
   // Wait for 1 second before updating the screen again
   delay(1000);
-}
-
-void updateNtpTime() {
-  if (WiFi.status() == WL_CONNECTED) {
-    tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_YELLOW); // Yellow dot while getting time
-    if (timeClient.update()) {
-      ntpSuccess = true;
-      lastNtpUpdateTime = millis();
-      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_GREEN); // Green dot for successful update
-    } else {
-      ntpSuccess = false;
-      tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
-    }
-  } else {
-    ntpSuccess = false;
-    tft.fillCircle(centerX, centerY - radius - 20, 5, TFT_RED); // Red dot for failed update
-  }
 }
 
 void drawClockFace() {
@@ -179,4 +164,21 @@ void drawAnalogClock(int hours, int minutes, int seconds) {
   prevSecX = centerX + radius * 0.70 * cos((secondAngle - 90) * PI / 180); // Shorter than minute hand
   prevSecY = centerY + radius * 0.70 * sin((secondAngle - 90) * PI / 180); // Shorter than minute hand
   tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_RED);
+
+  // Redraw the hour numbers to cover any erased parts
+  drawHourNumbers();
+}
+
+void drawHourNumbers() {
+  tft.setTextSize(2); // Set larger text size
+  for (int i = 1; i <= 12; i++) {
+    float angle = (i - 3) * 30 * PI / 180; // Adjusted angle calculation
+    int xNum = centerX + (radius - 30) * cos(angle); // Adjust position to accommodate larger text
+    int yNum = centerY + (radius - 30) * sin(angle);
+    String hourStr = String(i);
+    int16_t x1Num = xNum - (tft.textWidth(hourStr) / 2); // Proper centering for larger text
+    int16_t y1Num = yNum - (tft.fontHeight() / 2); // Proper centering for larger text
+    tft.setCursor(x1Num, y1Num);
+    tft.print(hourStr);
+  }
 }
