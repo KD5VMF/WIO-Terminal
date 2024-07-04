@@ -1,3 +1,3 @@
 # WIO-Terminal
-Seeed Studio WIO RE-Terminal Sample Programs
+Seeed Studio WIO Terminal Sample Programs
 Built using CHAT-GPT4o 2024
