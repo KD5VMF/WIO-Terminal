@@ -114,11 +114,11 @@ void drawClockFace() {
     tft.drawLine(x1, y1, x2, y2, TFT_WHITE);
 
     // Draw hour numbers
-    int xNum = centerX + (radius - 20) * cos(angle); // Adjust position to accommodate larger text
-    int yNum = centerY + (radius - 20) * sin(angle);
+    int xNum = centerX + (radius - 30) * cos(angle); // Adjust position to accommodate larger text
+    int yNum = centerY + (radius - 30) * sin(angle);
     String hourStr = String(i);
-    int16_t x1Num = xNum - (6 * hourStr.length()); // Approximate centering for larger text
-    int16_t y1Num = yNum - 12; // Approximate centering for larger text
+    int16_t x1Num = xNum - (tft.textWidth(hourStr) / 2); // Proper centering for larger text
+    int16_t y1Num = yNum - (tft.fontHeight() / 2); // Proper centering for larger text
     tft.setCursor(x1Num, y1Num);
     tft.print(hourStr);
   }
