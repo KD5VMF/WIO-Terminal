@@ -29,9 +29,9 @@
 
 // Wi-Fi credentials
 const char* ssid1 = "SSID1";
-const char* password1 = "PASSPHARSE1";
+const char* password1 = "PASSWORD";
 const char* ssid2 = "SSID2";
-const char* password2 = "[PASSPHARSE2";
+const char* password2 = "PASSWORD";
 
 // Timezone setting for Chicago
 const long gmtOffset_sec = -21600; // GMT offset for Chicago (UTC - 6 hours)
@@ -104,7 +104,11 @@ void loop() {
         ntpSuccess = true;
         lastNtpUpdateTime = currentMillis;
         tft.fillCircle(tft.width() - 20, 20, 10, TFT_GREEN); // Green dot for successful update
+      } else {
+        tft.fillCircle(tft.width() - 20, 20, 10, TFT_RED); // Red dot for failed update
       }
+    } else {
+      tft.fillCircle(tft.width() - 20, 20, 10, TFT_RED); // Red dot for failed update
     }
   }
 
