@@ -1,5 +1,5 @@
-/*  
-License: MIT License
+/*
+  License: MIT License
   Copyright (c) [2024] [Adam Figueroa]
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,9 +27,11 @@ License: MIT License
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 
-// WiFi credentials
-const char* ssid     = "your_SSID";
-const char* password = "your_PASSWORD";
+// Wi-Fi credentials
+const char* ssid1 = "SSID1";
+const char* password1 = "PASSPHARSE1";
+const char* ssid2 = "SSID2";
+const char* password2 = "[PASSPHARSE2";
 
 // Timezone setting for Chicago
 const long gmtOffset_sec = -21600; // GMT offset for Chicago (UTC - 6 hours)
@@ -52,6 +54,7 @@ unsigned long lastRetryTime = 0;
 const unsigned long ntpUpdateInterval = 5 * 60 * 1000; // 5 minutes
 const unsigned long retryInterval = 30 * 1000; // 30 seconds
 bool ntpSuccess = false;
+String currentSSID = "";
 
 void setup() {
   // Initialize the TFT screen
@@ -66,12 +69,7 @@ void setup() {
 
   // Connect to Wi-Fi
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi...");
-  }
-  Serial.println("Connected to WiFi");
+  connectToWiFi();
 
   // Initialize NTP
   timeClient.begin();
@@ -202,4 +200,40 @@ void drawHourNumbers() {
     tft.setCursor(x1Num, y1Num);
     tft.print(hourStr);
   }
+}
+
+void connectToWiFi() {
+  int attempt = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    if (attempt % 2 == 0) {
+      Serial.print("Attempting to connect to primary Wi-Fi...");
+      WiFi.begin(ssid1, password1);
+      currentSSID = ssid1;
+    } else {
+      Serial.print("Attempting to connect to secondary Wi-Fi...");
+      WiFi.begin(ssid2, password2);
+      currentSSID = ssid2;
+    }
+
+    int waitTime = 0;
+    while (WiFi.status() != WL_CONNECTED && waitTime < 10000) {
+      delay(500);
+      Serial.print(".");
+      waitTime += 500;
+    }
+    Serial.println();
+
+    attempt++;
+  }
+
+  Serial.println("Connected to Wi-Fi");
+  displaySSID();
+}
+
+void displaySSID() {
+  tft.setTextSize(1); // Set smaller text size for SSID display
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.fillRect(0, tft.height() - 20, tft.width(), 20, TFT_BLACK); // Clear previous SSID
+  tft.setCursor(5, tft.height() - 20); // Position cursor
+  tft.print(currentSSID); // Display current SSID
 }
