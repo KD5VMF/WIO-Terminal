@@ -1,6 +1,6 @@
 /*
   License: MIT License
-  Copyright (c) [2024] [Adam Figueroa]
+  Copyright (c) [2024] [Adam Figueroa ]
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@
 #include <WiFi.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Seeed_Arduino_FS.h>
+#include <SD/Seeed_SD.h>
 
 // Wi-Fi credentials
 const char* ssid1 = "SSID1";
@@ -33,16 +35,30 @@ const char* password1 = "PASSWORD";
 const char* ssid2 = "SSID2";
 const char* password2 = "PASSWORD";
 
-// Timezone setting for Chicago
-const long gmtOffset_sec = -21600; // GMT offset for Chicago (UTC - 6 hours)
-const int daylightOffset_sec = 3600; // Daylight saving time offset
+// Timezone settings for the top 10 time zones in the Americas (offsets in seconds from UTC)
+const long timeZones[] = {
+  -18000, // Eastern Standard Time (EST) UTC-5
+  -21600, // Central Standard Time (CST) UTC-6
+  -25200, // Mountain Standard Time (MST) UTC-7
+  -28800, // Pacific Standard Time (PST) UTC-8
+  -32400, // Alaska Standard Time (AKST) UTC-9
+  -36000, // Hawaii-Aleutian Standard Time (HAST) UTC-10
+  -14400, // Atlantic Standard Time (AST) UTC-4
+  -10800, // Argentina Time (ART) UTC-3
+  -12600, // Newfoundland Standard Time (NST) UTC-3:30
+  -7200   // Brasilia Time (BRT) UTC-2
+};
 
-// Create object "tft"
+const char* timeZoneNames[] = {
+  "EST", "CST", "MST", "PST", "AKST", "HAST", "AST", "ART", "NST", "BRT"
+};
+
+int currentTimeZoneIndex = 1; // Default to CST
+bool isDSTEnabled = true; // DST is enabled by default
+
 TFT_eSPI tft = TFT_eSPI();
-
-// Define NTP Client to get time
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", gmtOffset_sec + daylightOffset_sec, 60000); // NTP server, time offset in seconds, update interval in milliseconds
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // NTP server, time offset in seconds, update interval in milliseconds
 
 int centerX, centerY, radius;
 float prevSecX = 0, prevSecY = 0;
@@ -55,6 +71,14 @@ const unsigned long ntpUpdateInterval = 5 * 60 * 1000; // 5 minutes
 const unsigned long retryInterval = 30 * 1000; // 30 seconds
 bool ntpSuccess = false;
 String currentSSID = "";
+
+const int buttonA = WIO_KEY_A; // Top left button
+const int buttonB = WIO_KEY_B; // Top middle button
+const int buttonC = WIO_KEY_C; // Top right button
+unsigned long lastButtonPressTime = 0;
+const unsigned long debounceDelay = 150; // Slightly increased debounce delay
+
+void drawTimeZone(bool clearPrevious = false);
 
 void setup() {
   // Initialize the TFT screen
@@ -72,15 +96,46 @@ void setup() {
   connectToWiFi();
 
   // Initialize NTP
+  updateNTPClient();
   timeClient.begin();
 
   // Draw clock face once
   drawClockFace();
+
+  // Initialize buttons
+  pinMode(buttonA, INPUT_PULLUP);
+  pinMode(buttonB, INPUT_PULLUP);
+  pinMode(buttonC, INPUT_PULLUP);
+
+  // Draw initial time zone
+  drawTimeZone(true);
 }
 
 void loop() {
   unsigned long currentMillis = millis();
-  
+
+  // Handle button presses
+  if (currentMillis - lastButtonPressTime > debounceDelay) {
+    if (digitalRead(buttonA) == LOW) {
+      currentTimeZoneIndex = (currentTimeZoneIndex + 1) % 10;
+      updateNTPClient();
+      drawTimeZone(true);
+      lastButtonPressTime = currentMillis;
+    }
+    if (digitalRead(buttonB) == LOW) {
+      currentTimeZoneIndex = (currentTimeZoneIndex + 9) % 10; // Go backwards
+      updateNTPClient();
+      drawTimeZone(true);
+      lastButtonPressTime = currentMillis;
+    }
+    if (digitalRead(buttonC) == LOW) {
+      isDSTEnabled = !isDSTEnabled;
+      updateNTPClient();
+      drawTimeZone(true);
+      lastButtonPressTime = currentMillis;
+    }
+  }
+
   if (currentMillis - lastNtpUpdateTime >= ntpUpdateInterval || lastNtpUpdateTime == 0) {
     if (WiFi.status() == WL_CONNECTED) {
       tft.fillCircle(tft.width() - 20, 20, 10, TFT_YELLOW); // Yellow dot while getting time
@@ -120,8 +175,8 @@ void loop() {
   // Draw analog clock
   drawAnalogClock(hours, minutes, seconds);
 
-  // Wait for 1 second before updating the screen again
-  delay(1000);
+  // Wait for a short time before updating the screen again
+  delay(200); // Slightly increased delay for button responsiveness
 }
 
 void drawClockFace() {
@@ -187,9 +242,6 @@ void drawAnalogClock(int hours, int minutes, int seconds) {
   prevSecX = centerX + radius * 0.70 * cos((secondAngle - 90) * PI / 180); // Shorter than minute hand
   prevSecY = centerY + radius * 0.70 * sin((secondAngle - 90) * PI / 180); // Shorter than minute hand
   tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_RED);
-
-  // Redraw the hour numbers to cover any erased parts
-  drawHourNumbers();
 }
 
 void drawHourNumbers() {
@@ -204,6 +256,16 @@ void drawHourNumbers() {
     tft.setCursor(x1Num, y1Num);
     tft.print(hourStr);
   }
+}
+
+void drawTimeZone(bool clearPrevious) {
+  tft.setTextSize(2); // Increased text size for time zone display
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  if (clearPrevious) {
+    tft.fillRect(0, 0, 80, 40, TFT_BLACK); // Clear previous time zone
+  }
+  tft.setCursor(5, 5); // Adjusted position for larger text
+  tft.print(timeZoneNames[currentTimeZoneIndex]); // Display current time zone
 }
 
 void connectToWiFi() {
@@ -240,4 +302,12 @@ void displaySSID() {
   tft.fillRect(0, tft.height() - 20, tft.width(), 20, TFT_BLACK); // Clear previous SSID
   tft.setCursor(5, tft.height() - 20); // Position cursor
   tft.print(currentSSID); // Display current SSID
+}
+
+void updateNTPClient() {
+  int offset = timeZones[currentTimeZoneIndex];
+  if (isDSTEnabled) {
+    offset += 3600; // Add one hour for DST
+  }
+  timeClient.setTimeOffset(offset);
 }
