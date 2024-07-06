@@ -1,6 +1,7 @@
 /*
   License: MIT License
-  Copyright (c) [2024] [Adam Figueroa ]
+  Author: Adam Figueroa
+  Year: 2024
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +20,64 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
+  
+******************************************************************************************************************************************
+
+  Overview:
+  This Arduino sketch displays an analog clock on a TFT screen using a Wio Terminal. 
+  It fetches the current time from an NTP server over Wi-Fi and adjusts the time 
+  based on the selected time zone and Daylight Saving Time (DST) settings. The 
+  time zone can be cycled through the top left and top middle buttons, and DST 
+  can be toggled using the top right button. The current time zone is displayed 
+  at the top left corner of the screen.
+
+  Features:
+  - Displays an analog clock on a TFT screen.
+  - Fetches the current time from an NTP server.
+  - Allows cycling through 11 time zones in the Americas and UTC using two buttons.
+  - Toggles Daylight Saving Time (DST) on and off using a third button.
+  - Displays the current time zone on the screen.
+
+  Usage:
+  1. Connect the Wio Terminal to a computer and open this sketch in the Arduino IDE.
+  2. Enter your Wi-Fi credentials in the 'ssid1', 'password1', 'ssid2', and 'password2' 
+     variables to allow the Wio Terminal to connect to the internet.
+  3. Upload the sketch to the Wio Terminal.
+  4. The Wio Terminal will display an analog clock and connect to the NTP server to fetch 
+     the current time.
+  5. Use the top left button (WIO_KEY_A) to cycle forward through the time zones.
+  6. Use the top middle button (WIO_KEY_B) to cycle backward through the time zones.
+  7. Use the top right button (WIO_KEY_C) to toggle DST on and off.
+  8. The current time zone will be displayed in the top left corner of the screen.
+
+  Buttons:
+  - Top left button (WIO_KEY_A): Cycle forward through the time zones.
+  - Top middle button (WIO_KEY_B): Cycle backward through the time zones.
+  - Top right button (WIO_KEY_C): Toggle Daylight Saving Time (DST) on and off.
+
+  Dependencies:
+  - TFT_eSPI library for the TFT display.
+  - WiFi library for Wi-Fi connectivity.
+  - NTPClient library for fetching time from an NTP server.
+  - Seeed_Arduino_FS and Seeed_SD libraries for file system and SD card support.
+
+  The time zones included in this sketch are:
+  - UTC (Coordinated Universal Time, UTC+0)
+  - EST (Eastern Standard Time, UTC-5)
+  - CST (Central Standard Time, UTC-6)
+  - MST (Mountain Standard Time, UTC-7)
+  - PST (Pacific Standard Time, UTC-8)
+  - AKST (Alaska Standard Time, UTC-9)
+  - HAST (Hawaii-Aleutian Standard Time, UTC-10)
+  - AST (Atlantic Standard Time, UTC-4)
+  - ART (Argentina Time, UTC-3)
+  - NST (Newfoundland Standard Time, UTC-3:30)
+  - BRT (Brasilia Time, UTC-2)
+
+  Note:
+  - The NTP client updates the time every 5 minutes.
+  - The sketch handles reconnection attempts if the Wi-Fi connection is lost.
+  - The analog clock is updated every second to reflect the current time.
 */
 
 #include <TFT_eSPI.h>
@@ -35,25 +94,26 @@ const char* password1 = "PASSWORD1";
 const char* ssid2 = "SSID2";
 const char* password2 = "PASSWORD2";
 
-// Timezone settings for the top 10 time zones in the Americas (offsets in seconds from UTC)
+// Timezone settings for the top 11 time zones in the Americas and UTC (offsets in seconds from UTC)
 const long timeZones[] = {
-  -18000, // Eastern Standard Time (EST) UTC-5
-  -21600, // Central Standard Time (CST) UTC-6
-  -25200, // Mountain Standard Time (MST) UTC-7
-  -28800, // Pacific Standard Time (PST) UTC-8
-  -32400, // Alaska Standard Time (AKST) UTC-9
-  -36000, // Hawaii-Aleutian Standard Time (HAST) UTC-10
-  -14400, // Atlantic Standard Time (AST) UTC-4
-  -10800, // Argentina Time (ART) UTC-3
-  -12600, // Newfoundland Standard Time (NST) UTC-3:30
-  -7200   // Brasilia Time (BRT) UTC-2
+  0,       // Coordinated Universal Time (UTC) UTC+0
+  -18000,  // Eastern Standard Time (EST) UTC-5
+  -21600,  // Central Standard Time (CST) UTC-6
+  -25200,  // Mountain Standard Time (MST) UTC-7
+  -28800,  // Pacific Standard Time (PST) UTC-8
+  -32400,  // Alaska Standard Time (AKST) UTC-9
+  -36000,  // Hawaii-Aleutian Standard Time (HAST) UTC-10
+  -14400,  // Atlantic Standard Time (AST) UTC-4
+  -10800,  // Argentina Time (ART) UTC-3
+  -12600,  // Newfoundland Standard Time (NST) UTC-3:30
+  -7200    // Brasilia Time (BRT) UTC-2
 };
 
 const char* timeZoneNames[] = {
-  "EST", "CST", "MST", "PST", "AKST", "HAST", "AST", "ART", "NST", "BRT"
+  "UTC", "EST", "CST", "MST", "PST", "AKST", "HAST", "AST", "ART", "NST", "BRT"
 };
 
-int currentTimeZoneIndex = 1; // Default to CST
+int currentTimeZoneIndex = 2; // Default to CST
 bool isDSTEnabled = true; // DST is enabled by default
 
 TFT_eSPI tft = TFT_eSPI();
@@ -117,13 +177,13 @@ void loop() {
   // Handle button presses
   if (currentMillis - lastButtonPressTime > debounceDelay) {
     if (digitalRead(buttonA) == LOW) {
-      currentTimeZoneIndex = (currentTimeZoneIndex + 1) % 10;
+      currentTimeZoneIndex = (currentTimeZoneIndex + 1) % 11;
       updateNTPClient();
       drawTimeZone(true);
       lastButtonPressTime = currentMillis;
     }
     if (digitalRead(buttonB) == LOW) {
-      currentTimeZoneIndex = (currentTimeZoneIndex + 9) % 10; // Go backwards
+      currentTimeZoneIndex = (currentTimeZoneIndex + 10) % 11; // Go backwards
       updateNTPClient();
       drawTimeZone(true);
       lastButtonPressTime = currentMillis;
@@ -242,6 +302,9 @@ void drawAnalogClock(int hours, int minutes, int seconds) {
   prevSecX = centerX + radius * 0.70 * cos((secondAngle - 90) * PI / 180); // Shorter than minute hand
   prevSecY = centerY + radius * 0.70 * sin((secondAngle - 90) * PI / 180); // Shorter than minute hand
   tft.drawLine(centerX, centerY, prevSecX, prevSecY, TFT_RED);
+
+  // Redraw hour numbers to ensure they are on top
+  drawHourNumbers();
 }
 
 void drawHourNumbers() {
