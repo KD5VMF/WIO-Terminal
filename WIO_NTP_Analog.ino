@@ -31,9 +31,9 @@
 
 // Wi-Fi credentials
 const char* ssid1 = "SSID1";
-const char* password1 = "PASSWORD";
+const char* password1 = "PASSWORD1";
 const char* ssid2 = "SSID2";
-const char* password2 = "PASSWORD";
+const char* password2 = "PASSWORD2";
 
 // Timezone settings for the top 10 time zones in the Americas (offsets in seconds from UTC)
 const long timeZones[] = {
