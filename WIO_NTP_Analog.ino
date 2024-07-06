@@ -29,14 +29,14 @@
   based on the selected time zone and Daylight Saving Time (DST) settings. The 
   time zone can be cycled through the top left and top middle buttons, and DST 
   can be toggled using the top right button. The current time zone is displayed 
-  at the top left corner of the screen.
+  at the top left corner of the screen along with the DST status.
 
   Features:
   - Displays an analog clock on a TFT screen.
   - Fetches the current time from an NTP server.
   - Allows cycling through 11 time zones in the Americas and UTC using two buttons.
   - Toggles Daylight Saving Time (DST) on and off using a third button.
-  - Displays the current time zone on the screen.
+  - Displays the current time zone and DST status on the screen.
 
   Usage:
   1. Connect the Wio Terminal to a computer and open this sketch in the Arduino IDE.
@@ -48,7 +48,7 @@
   5. Use the top left button (WIO_KEY_A) to cycle forward through the time zones.
   6. Use the top middle button (WIO_KEY_B) to cycle backward through the time zones.
   7. Use the top right button (WIO_KEY_C) to toggle DST on and off.
-  8. The current time zone will be displayed in the top left corner of the screen.
+  8. The current time zone and DST status will be displayed in the top left corner of the screen.
 
   Buttons:
   - Top left button (WIO_KEY_A): Cycle forward through the time zones.
@@ -139,6 +139,8 @@ unsigned long lastButtonPressTime = 0;
 const unsigned long debounceDelay = 150; // Slightly increased debounce delay
 
 void drawTimeZone(bool clearPrevious = false);
+void connectToWiFi();
+void updateNTPClient();
 
 void setup() {
   // Initialize the TFT screen
@@ -326,9 +328,15 @@ void drawTimeZone(bool clearPrevious) {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   if (clearPrevious) {
     tft.fillRect(0, 0, 80, 40, TFT_BLACK); // Clear previous time zone
+    tft.fillRect(tft.width() - 80, tft.height() - 20, 80, 20, TFT_BLACK); // Clear previous DST status
   }
   tft.setCursor(5, 5); // Adjusted position for larger text
   tft.print(timeZoneNames[currentTimeZoneIndex]); // Display current time zone
+
+  // Display DST status
+  tft.setTextSize(1); // Smaller text size for DST status
+  tft.setCursor(tft.width() - 75, tft.height() - 15); // Position in the lower right corner
+  tft.print(isDSTEnabled ? "DST: ON" : "DST: OFF"); // Display DST status
 }
 
 void connectToWiFi() {
