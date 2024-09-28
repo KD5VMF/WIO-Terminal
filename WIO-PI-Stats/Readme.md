@@ -1,7 +1,5 @@
-Overview of the Project: Explain what the project does.
-Setting Up the Raspberry Pi: Steps for running the Python script and making it start on boot.
-Arduino Code for the Wio Terminal: General instructions on uploading the code and ensuring proper communication.
 Connecting the Raspberry Pi and Wio Terminal: Wiring and I2C setup.
+
 Project Overview:
 This project aims to display real-time system metrics from a Raspberry Pi on a Wio Terminal. The metrics include RAM usage, CPU temperature, network information, and more. Communication between the Pi and the Wio Terminal occurs over the I2C protocol, with the Wio Terminal acting as a slave device that displays the data on its screen.
 
