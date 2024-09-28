@@ -82,7 +82,7 @@
 
 #include <TFT_eSPI.h>
 #include <SPI.h>
-#include <WiFi.h>
+#include <rpcWiFi.h>  // Correct WiFi library for Wio Terminal
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <Seeed_Arduino_FS.h>
@@ -141,6 +141,10 @@ const unsigned long debounceDelay = 150; // Slightly increased debounce delay
 void drawTimeZone(bool clearPrevious = false);
 void connectToWiFi();
 void updateNTPClient();
+void drawClockFace();
+void drawAnalogClock(int hours, int minutes, int seconds);
+void drawHourNumbers();
+void displaySSID();
 
 void setup() {
   // Initialize the TFT screen
@@ -241,6 +245,66 @@ void loop() {
   delay(200); // Slightly increased delay for button responsiveness
 }
 
+void connectToWiFi() {
+  int attempt = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    if (attempt % 2 == 0) {
+      Serial.print("Attempting to connect to primary Wi-Fi...");
+      WiFi.begin(ssid1, password1);
+      currentSSID = ssid1;
+    } else {
+      Serial.print("Attempting to connect to secondary Wi-Fi...");
+      WiFi.begin(ssid2, password2);
+      currentSSID = ssid2;
+    }
+
+    int waitTime = 0;
+    while (WiFi.status() != WL_CONNECTED && waitTime < 10000) {
+      delay(500);
+      Serial.print(".");
+      waitTime += 500;
+    }
+    Serial.println();
+
+    attempt++;
+  }
+
+  Serial.println("Connected to Wi-Fi");
+  displaySSID();
+}
+
+void displaySSID() {
+  tft.setTextSize(1); // Set smaller text size for SSID display
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.fillRect(0, tft.height() - 20, tft.width(), 20, TFT_BLACK); // Clear previous SSID
+  tft.setCursor(5, tft.height() - 20); // Position cursor
+  tft.print(currentSSID); // Display current SSID
+}
+
+void updateNTPClient() {
+  int offset = timeZones[currentTimeZoneIndex];
+  if (isDSTEnabled) {
+    offset += 3600; // Add one hour for DST
+  }
+  timeClient.setTimeOffset(offset);
+}
+
+void drawTimeZone(bool clearPrevious) {
+  tft.setTextSize(2); // Increased text size for time zone display
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  if (clearPrevious) {
+    tft.fillRect(0, 0, 80, 40, TFT_BLACK); // Clear previous time zone
+    tft.fillRect(tft.width() - 80, tft.height() - 20, 80, 20, TFT_BLACK); // Clear previous DST status
+  }
+  tft.setCursor(5, 5); // Adjusted position for larger text
+  tft.print(timeZoneNames[currentTimeZoneIndex]); // Display current time zone
+
+  // Display DST status
+  tft.setTextSize(1); // Smaller text size for DST status
+  tft.setCursor(tft.width() - 75, tft.height() - 15); // Position in the lower right corner
+  tft.print(isDSTEnabled ? "DST: ON" : "DST: OFF"); // Display DST status
+}
+
 void drawClockFace() {
   // Draw clock face
   tft.drawCircle(centerX, centerY, radius, TFT_WHITE);
@@ -321,64 +385,4 @@ void drawHourNumbers() {
     tft.setCursor(x1Num, y1Num);
     tft.print(hourStr);
   }
-}
-
-void drawTimeZone(bool clearPrevious) {
-  tft.setTextSize(2); // Increased text size for time zone display
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  if (clearPrevious) {
-    tft.fillRect(0, 0, 80, 40, TFT_BLACK); // Clear previous time zone
-    tft.fillRect(tft.width() - 80, tft.height() - 20, 80, 20, TFT_BLACK); // Clear previous DST status
-  }
-  tft.setCursor(5, 5); // Adjusted position for larger text
-  tft.print(timeZoneNames[currentTimeZoneIndex]); // Display current time zone
-
-  // Display DST status
-  tft.setTextSize(1); // Smaller text size for DST status
-  tft.setCursor(tft.width() - 75, tft.height() - 15); // Position in the lower right corner
-  tft.print(isDSTEnabled ? "DST: ON" : "DST: OFF"); // Display DST status
-}
-
-void connectToWiFi() {
-  int attempt = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    if (attempt % 2 == 0) {
-      Serial.print("Attempting to connect to primary Wi-Fi...");
-      WiFi.begin(ssid1, password1);
-      currentSSID = ssid1;
-    } else {
-      Serial.print("Attempting to connect to secondary Wi-Fi...");
-      WiFi.begin(ssid2, password2);
-      currentSSID = ssid2;
-    }
-
-    int waitTime = 0;
-    while (WiFi.status() != WL_CONNECTED && waitTime < 10000) {
-      delay(500);
-      Serial.print(".");
-      waitTime += 500;
-    }
-    Serial.println();
-
-    attempt++;
-  }
-
-  Serial.println("Connected to Wi-Fi");
-  displaySSID();
-}
-
-void displaySSID() {
-  tft.setTextSize(1); // Set smaller text size for SSID display
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  tft.fillRect(0, tft.height() - 20, tft.width(), 20, TFT_BLACK); // Clear previous SSID
-  tft.setCursor(5, tft.height() - 20); // Position cursor
-  tft.print(currentSSID); // Display current SSID
-}
-
-void updateNTPClient() {
-  int offset = timeZones[currentTimeZoneIndex];
-  if (isDSTEnabled) {
-    offset += 3600; // Add one hour for DST
-  }
-  timeClient.setTimeOffset(offset);
 }
